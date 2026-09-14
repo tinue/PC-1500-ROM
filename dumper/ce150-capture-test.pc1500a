@@ -1,0 +1,46 @@
+# Emulator regression test for ce150-capture.asm's copy-loop, PV handling,
+# and checksum logic, run against Calc-U-1600's own bundled CE-150.ROM. That
+# file was an unverified community dump (roms/README.md) when this test was
+# written; it's since been confirmed byte-for-byte identical (same md5) to
+# ../dumps/CE-150.BIN, this project's own real-hardware-verified capture.
+# Expected checksum of that file: sum of all 8192 bytes mod 65536 = 37689
+# (0x9339).
+#
+# The CLI has no generic memory-peek flag, and the checksum round-trips
+# through the BASIC variable N via the CALL convention (X register) --
+# invisible to the CLI's trace/display dumps once BASIC's own idle loop has
+# run long enough afterward to evict the relevant frames from the 512-entry
+# trace ring. So this script POKEs the checksum's two bytes (read straight
+# back from the ML routine's own CHK_H/CHK_L at &162/&163 via PEEK) into
+# the start of the BASIC program area, which --dump-basic already prints.
+#
+# Run with (from the Calc-U-1600 checkout, so its bundled roms/ resolves):
+#   ./headless/pc1500_cli --preset ../PC-1500-ROM/dumper/ce150-capture-test.pc1500a \
+#       --modules-dir build/Debug/Calc-U-1600.app/Contents/Resources --dump-basic 2000000
+#
+# In the "--- program area $2166..* ---" dump, the first two bytes at
+# $2166 are the checksum's high and low byte -- compare against 0x9339.
+
+model: PC-1500A
+firmware: A04
+plotter: ce150
+
+memory-expansion:
+  - modulespec: CE-163F
+
+keys:
+  - key: cl
+  - type: NEW&2166
+  - key: mode
+
+program:
+  path: ce150-capture.bin
+  format: binary
+  address: 0x112
+
+keys:
+  - key: cl
+  - type: N=0
+  - type: CALL&112,N
+  - type: POKE&2166,PEEK(&162)
+  - type: POKE&2167,PEEK(&163)
