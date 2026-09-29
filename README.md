@@ -63,7 +63,7 @@ PC-1500 or PC-1500A with a 16k memory module at &0000** (e.g. CE-1638/
 CE-163F/CE-163X). `.org 0x112` is the code's load address; it already
 accounts for the 197-byte BASIC reserve plus that module's own firmware
 reserve (this exact offset appears as a worked example in
-`SharpPC1500Reference/Assembly-Programming/LH5801_Guide.md`: `NEW &112 ;
+`Sharp1500-1600-Ref/PC-1500/Assembly-Programming/LH5801_Guide.md`: `NEW &112 ;
 protect first 112 bytes from BASIC` -- confirmed against a real CE-163F: its
 own bootstrap firmware patches `BASPRG_ST`/`BASPRG_END`/`BASPRG_EDT` to
 `&0112` once at boot, i.e. it performs the equivalent of `NEW &112` in
@@ -78,8 +78,8 @@ software). Layout, from the assembled `.sym`:
 ### 3. CE-150 and CE-158X are both attached the whole time
 
 Both place their own system ROM in the same &8000-&BFFF window
-(`SharpPC1500Reference/Peripherals/CE-150-Hardware.md`,
-`Memory-Architecture/PU-PV-Signals.md`), but real PC-1500 peripherals
+(`Sharp1500-1600-Ref/PC-1500/Peripherals/CE-150-Hardware.md`,
+`Sharp1500-1600-Ref/PC-1500/Memory-Architecture/PU-PV-Signals.md`), but real PC-1500 peripherals
 daisy-chain through a pass-through connector, and CE-150/CE-158X were
 attached simultaneously for this dump -- **no module swap between capture
 and export.** `PU-PV-Signals.md` §5: "PV selects which is visible when both
