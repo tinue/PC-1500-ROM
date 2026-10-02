@@ -2,7 +2,7 @@
 # and checksum logic, run against Calc-U-1600's own bundled CE-150.ROM. That
 # file was an unverified community dump (roms/README.md) when this test was
 # written; it's since been confirmed byte-for-byte identical (same md5) to
-# ../dumps/CE-150.BIN, this project's own real-hardware-verified capture.
+# ../dumps/ce150/CE-150.BIN, this project's own real-hardware-verified capture.
 # Expected checksum of that file: sum of all 8192 bytes mod 65536 = 37689
 # (0x9339).
 #

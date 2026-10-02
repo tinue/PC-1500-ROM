@@ -1,20 +1,55 @@
-# Sharp CE-150 ROM dump
+# Sharp PC-1500 ROM images
 
-This contains a dump of the Sharp CE-150 plotter/printer's 8KB system ROM
-(&A000-&BFFF), plus the tool used to produce it. Captured directly from a
-PC-1500A with a CE-150 and a CE-158X (Jeff Birt's modern CE-158 replacement)
-both attached, over the CE-158X's USB serial port (labeled **U1**).
+This repository holds the ROM images of the Sharp PC-1500 / PC-1500A and
+of its two main peripherals: the CE-150 printer/plotter/cassette interface
+and the CE-158 RS-232C/Centronics interface. It also holds the tool used to
+dump the CE-150 ROM. The layout follows the sibling repository
+[PC-1600-ROM](https://github.com/tinue/PC-1600-ROM): one directory per unit
+(and per ROM revision) under `dumps/`.
 
-**Despite the repo's name, only the CE-150 ROM is dumped here.** The
-PC-1500/PC-1500A's own system ROM and the CE-158's ROM already have public
-sources and don't need a fresh dump:
-[Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly)
-(`Original_ROMs/`, PC-1500 system ROM revisions A01/A03/A04) and
-[Jeff-Birt/Sharp_CE-158](https://github.com/Jeff-Birt/Sharp_CE-158)
-(`CE-158_ROM_ORIG.bin`). The CE-150 ROM was the one genuine gap -- Jeff-Birt's
-repo only has a symbol table (`lib/CE-150.lib`) for it, not the binary.
+Only the CE-150 ROM was dumped by this project. The PC-1500 system ROMs and
+the CE-158 ROM are copies of Jeff Birt's public dumps (see
+[Provenance](#provenance)). They are collected here so that every PC-1500 ROM
+comes from one place: the emulator
+[Calc-U-1600](https://github.com/tinue/Calc-U-1600) fetches them from here, and
+the annotated disassemblies are generated from them.
 
-## Contents
+## ROM images
+
+| File | Size | Address | What it is | MD5 |
+|---|---|---|---|---|
+| [`dumps/a01/PC-1500-A01.BIN`](dumps/a01) | 16 KB | C000H–FFFFH | PC-1500 system ROM, revision A01 (PC-1500 only) | `fbc55a9a8743e619b7709721ff5bcbff` |
+| [`dumps/a03/PC-1500-A03.BIN`](dumps/a03) | 16 KB | C000H–FFFFH | PC-1500 system ROM, revision A03 (PC-1500 only) | `4bcf78a6d3d32e2a0349eb2d28987b8d` |
+| [`dumps/a04/PC-1500-A04.BIN`](dumps/a04) | 16 KB | C000H–FFFFH | PC-1500 system ROM, revision A04 (PC-1500A and late PC-1500) | `8ebec8b0ef358645df14807c31df7d06` |
+| [`dumps/ce150/CE-150.BIN`](dumps/ce150) | 8 KB | A000H–BFFFH (PV = 0) | CE-150 printer/plotter/cassette interface | `eb9aa5156c6849890b137799efc50a4b` |
+| [`dumps/ce158/CE-158-LOW.BIN`](dumps/ce158) | 8 KB | 8000H–9FFFH (PV = 1, PU = 0) | CE-158 RS-232C/Centronics interface, low bank | `b5afbe03abd579c36d958ef523a21e40` |
+| [`dumps/ce158/CE-158-HIGH.BIN`](dumps/ce158) | 8 KB | 8000H–9FFFH (PV = 1, PU = 1) | CE-158 RS-232C/Centronics interface, high bank | `7f5e2d9a89c20cdf12321093c68fff90` |
+
+The CE-158 has one 16 KB ROM, seen through an 8 KB window: PU selects the
+bank. The two banks are kept as separate files because each is a program of
+its own, assembled at 8000H. Joined (low bank first) they give the complete
+ROM image, MD5 `aa952878fb29da4844791d95185649ca`:
+
+```sh
+cat dumps/ce158/CE-158-LOW.BIN dumps/ce158/CE-158-HIGH.BIN > CE-158.ROM
+```
+
+## Provenance
+
+| File | Source |
+|---|---|
+| `dumps/a0x/PC-1500-A0x.BIN` | [Jeff-Birt/Sharp_PC-1500_ROM_Disassembly](https://github.com/Jeff-Birt/Sharp_PC-1500_ROM_Disassembly), `Original_ROMs/PC-1500_A0x.ROM`, commit `5a5f8aa` |
+| `dumps/ce158/CE-158-LOW.BIN`, `CE-158-HIGH.BIN` | [Jeff-Birt/Sharp_CE-158](https://github.com/Jeff-Birt/Sharp_CE-158), `CE-158_ROM_SPV_RPU_LOW.bin` / `CE-158_ROM_SPV_SPU_HIGH.bin` (his raw bank dumps), commit `bd6a84a` |
+| `dumps/ce150/CE-150.BIN` | Dumped by this project from real hardware, see below |
+
+The copied files are byte-identical to their sources. Jeff Birt's
+repositories state no license. All images are Sharp Corporation's firmware.
+
+## CE-150 dump
+
+The CE-150 ROM (&A000-&BFFF) was captured directly from a PC-1500A with a
+CE-150 and a CE-158X (Jeff Birt's modern CE-158 replacement) both attached,
+over the CE-158X's USB serial port (labeled **U1**).
 
 | File | What it is |
 |---|---|
@@ -22,26 +57,22 @@ repo only has a symbol table (`lib/CE-150.lib`) for it, not the binary.
 | `dumper/ce150-capture.bin` | Assembled machine-language binary, ready to load at `&112` |
 | `dumper/ce150-capture.bas` | On-device BASIC driver: runs the capture, prints the checksum, exports it |
 | `dumper/ce150-capture-test.pc1500a` | Calc-U-1600 preset -- capture-logic-only regression test, see below |
-| `dumps/CE-150.BIN` | The CE-150 ROM dump, 8192 bytes |
+| `dumps/ce150/CE-150.BIN` | The CE-150 ROM dump, 8192 bytes |
 
-## Verification
-
-```
-eb9aa5156c6849890b137799efc50a4b  dumps/CE-150.BIN
-```
+### Verification
 
 The check made during capture: the 16-bit additive sum computed on the
 PC-1500A itself (`CALL &112, N`, printed by `ce150-capture.bas` before
 sending) and the 16-bit sum `SharpDataExchange --raw` reports on receipt
 agree -- both `0x9339`.
 
-**This dump is byte-for-byte identical** to the (previously real-hardware-
-*unverified*) `CE-150.ROM` bundled with the `Calc-U-1600` emulator project
-(same md5) -- confirmed directly, see "Emulator verification" below.
+This dump is byte-for-byte identical (same md5) to the previously
+unverified `CE-150.ROM` that the `Calc-U-1600` emulator project used to
+bundle, see "Emulator verification" below.
 
-## How the dump was made
+### How the dump was made
 
-### 1. Assemble `dumper/ce150-capture.asm`
+#### 1. Assemble `dumper/ce150-capture.asm`
 
 Requires `sdaslh5801`/`sdld`/`makebin` from the `sdcc-pc1500` project (see
 this project's `pc1500-build` skill for the exact pipeline). If you already
@@ -55,7 +86,7 @@ sdld -nf ce150-capture
 makebin -p -o 0x0112 ce150-capture.ihx ce150-capture.bin
 ```
 
-### 2. Why a 16k memory module, and why `&112`
+#### 2. Why a 16k memory module, and why `&112`
 
 CE-150's 8KB ROM doesn't fit in the PC-1500A's ~1KB machine-language area
 (&7C01-&7FFF), let alone the plain PC-1500's -- so this requires **a
@@ -75,7 +106,7 @@ software). Layout, from the assembled `.sym`:
 | `BUFFER` | `&166` | 8192-byte captured ROM image (`&166`-`&2165`) |
 | end of block | `&2166` | First byte free for BASIC -- `NEW &2166` |
 
-### 3. CE-150 and CE-158X are both attached the whole time
+#### 3. CE-150 and CE-158X are both attached the whole time
 
 Both place their own system ROM in the same &8000-&BFFF window
 (`Sharp1500-1600-Ref/PC-1500/Peripherals/CE-150-Hardware.md`,
@@ -95,7 +126,7 @@ ROM read, and restores it before returning -- the documented safe pattern
 confirmed directly against Calc-U-1600's own `Ce150Card`
 (`Core/Connector/Ce150Card.hpp`), whose ROM read is gated `!a.pv`.
 
-### 4. Load the program and driver onto the PC-1500A
+#### 4. Load the program and driver onto the PC-1500A
 
 ```
 NEW &2166
@@ -110,7 +141,7 @@ Then on the device `CLOAD`; on the PC:
 java -jar SharpDataExchange.jar put dumper/ce150-capture.bas
 ```
 
-### 5. Run it and capture the ROM
+#### 5. Run it and capture the ROM
 
 There is no ML-callable CE-158 byte-send routine anywhere in this project's
 corpus -- CE-158's RS-232C support is exposed only as BASIC command-table
@@ -126,7 +157,7 @@ PC-1500 doesn't buffer -- `ce150-capture.bas`'s own `INPUT A$` pause right
 before `CSAVE M` gives time to do this):
 
 ```sh
-java -jar SharpDataExchange.jar get --device pc1500 --raw dumps/CE-150.BIN
+java -jar SharpDataExchange.jar get --device pc1500 --raw dumps/ce150/CE-150.BIN
 ```
 
 `--raw` detects the CE-158 serial header, strips it, and prints the 16-bit
@@ -142,7 +173,7 @@ On the device, `RUN` `ce150-capture.bas`: it captures, prints the checksum
 (compare against the value `SharpDataExchange` prints -- they should match,
 confirmed above), then waits for Enter before sending.
 
-## Emulator verification (capture logic only)
+### Emulator verification (capture logic only)
 
 `pc1500emu` is retired for this project -- all emulator verification here
 uses **Calc-U-1600** (`headless/pc1500_cli`), not `pc1500preset`/`pc1500emu`.
@@ -152,7 +183,7 @@ own bundled `roms/CE-150.ROM` (a `plotter: ce150` attachment maps real ROM
 bytes into &A000-&BFFF for PV=0 reads -- `Core/Connector/Ce150Card.hpp`).
 That file was, until this dump, an **unverified community dump**
 (`Calc-U-1600/roms/README.md`) -- it's now confirmed byte-for-byte
-identical to `dumps/CE-150.BIN` above (same md5).
+identical to `dumps/ce150/CE-150.BIN` above (same md5).
 
 Run from the `Calc-U-1600` checkout (so its bundled `roms/` and the
 software-defined-card catalog resolve):
