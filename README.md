@@ -34,6 +34,14 @@ ROM image, MD5 `aa952878fb29da4844791d95185649ca`:
 cat dumps/ce158/CE-158-LOW.BIN dumps/ce158/CE-158-HIGH.BIN > CE-158.ROM
 ```
 
+## Disassemblies
+
+[`disasm/`](disasm) holds an annotated disassembly of every dump, at the same path with
+`.asm` (`dumps/a04/PC-1500-A04.BIN` → `disasm/a04/PC-1500-A04.asm`). All of them reassemble
+byte-identical with `sdaslh5801`. [`disasm/README.md`](disasm/README.md) describes what each
+ROM contains, how to reassemble it, and what changed between A01, A03 and A04
+([`disasm/PC-1500-A0x-Revision-Differences.md`](disasm/PC-1500-A0x-Revision-Differences.md)).
+
 ## Provenance
 
 | File | Source |
